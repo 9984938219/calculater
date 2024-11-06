@@ -1,0 +1,105 @@
+#include <iostream>
+#include <stack>
+#include <cctype>
+#include <string>
+#include <cmath>
+
+using namespace std;
+
+// Function to check if the character is an operator
+bool isOperator(char c) {
+    return (c == '+' || c == '-' || c == '*' || c == '/' || c == '^');
+}
+
+// Function to return precedence of operators
+int precedence(char op) {
+    if (op == '+' || op == '-')
+        return 1;
+    if (op == '*' || op == '/')
+        return 2;
+    if (op == '^')
+        return 3;
+    return 0;
+}
+
+// Function to perform the corresponding operation
+double applyOperation(double a, double b, char op) {
+    switch (op) {
+        case '+': return a + b;
+        case '-': return a - b;
+        case '*': return a * b;
+        case '/': return a / b;
+        case '^': return pow(a, b);
+    }
+    return 0;
+}
+
+// Function to convert infix expression to postfix expression
+string infixToPostfix(string infix) {
+    stack<char> operators;
+    string postfix;
+
+    for (int i = 0; i < infix.length(); i++) {
+        if (isdigit(infix[i])) {
+            // Append operand to postfix expression
+            postfix += infix[i];
+        } else if (infix[i] == '(') {
+            operators.push(infix[i]);
+        } else if (infix[i] == ')') {
+            while (!operators.empty() && operators.top() != '(') {
+                postfix += operators.top();
+                operators.pop();
+            }
+            operators.pop(); // pop '('
+        } else if (isOperator(infix[i])) {
+            while (!operators.empty() && precedence(operators.top()) >= precedence(infix[i])) {
+                postfix += operators.top();
+                operators.pop();
+            }
+            operators.push(infix[i]);
+        }
+    }
+
+    // Pop the remaining operators from the stack
+    while (!operators.empty()) {
+        postfix += operators.top();
+        operators.pop();
+    }
+
+    return postfix;
+}
+
+// Function to evaluate postfix expression
+double evaluatePostfix(string postfix) {
+    stack<double> operands;
+
+    for (int i = 0; i < postfix.length(); i++) {
+        if (isdigit(postfix[i])) {
+            operands.push(postfix[i] - '0');
+        } else if (isOperator(postfix[i])) {
+            double b = operands.top(); operands.pop();
+            double a = operands.top(); operands.pop();
+            double result = applyOperation(a, b, postfix[i]);
+            operands.push(result);
+        }
+    }
+
+    return operands.top();
+}
+
+// Main calculator function
+double calculate(string expression) {
+    string postfix = infixToPostfix(expression);
+    return evaluatePostfix(postfix);
+}
+
+int main() {
+    string expression;
+    cout << "Enter a mathematical expression: ";
+    cin >> expression;
+
+    double result = calculate(expression);
+    cout << "The result is: " << result << endl;
+
+    return 0;
+}
